@@ -1,0 +1,25 @@
+ body {
+      background-color: #dce6f0;
+      padding: 40px;
+    
+    }
+    .form-section {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .form-title {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .form-subtitle {
+      font-size: 14px;
+      color: #555;
+    }
