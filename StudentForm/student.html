@@ -5,61 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Student Registration Form</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  
-    <div class="container-fluid">
-  
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <!-- Optional nav items -->
-        </ul>
-      </div>
-    </div>
-  </nav>
 
-  <div class="container form-section my-5 bg-info">
-    <div class="header mb-4">
+  <div class="container form-section my-5 bg-info p-4 rounded">
+    <div class="header mb-4 text-center">
       <h3 class="form-title">Student Registration Form</h3>
     </div>
 
     <form onsubmit="return validateForm()">
-      <!-- Student Info -->
       <h5>Student Information</h5>
       <div class="row g-3">
-        <div class="col-md-6"><input type="text" id="firstName" class="form-control" placeholder="First Name"></div>
-        <div class="col-md-6"><input type="text" id="lastName" class="form-control" placeholder="Last Name"></div>
-        <div class="col-md-6"><input type="date" id="dob" class="form-control" placeholder="Date of Birth"></div>
-        <div class="col-md-6"><input type="text" id="studentId" class="form-control" placeholder="Student ID"></div>
+        <div class="col-md-6"><input type="text" id="firstName" class="form-control" placeholder="First Name" required></div>
+        <div class="col-md-6"><input type="text" id="lastName" class="form-control" placeholder="Last Name" required></div>
+        <div class="col-md-6"><input type="date" id="dob" class="form-control" placeholder="Date of Birth" required></div>
+        <div class="col-md-6"><input type="text" id="studentId" class="form-control" placeholder="Student ID" required></div>
       </div>
 
-      <!-- Address -->
       <h5 class="mt-4">Address</h5>
       <div class="row g-3">
         <div class="col-12"><input type="text" id="street" class="form-control" placeholder="Street Address"></div>
-        <div class="col-md-4"><input type="text" id="city" class="form-control" placeholder="City"></div>
-        <div class="col-md-4"><input type="text" id="state" class="form-control" placeholder="State / Province"></div>
-        <div class="col-md-2"><input type="text" id="country" class="form-control" placeholder="Country"></div>
-        <div class="col-md-2"><input type="text" id="pin" class="form-control" placeholder="Pin Code"></div>
+        <div class="col-md-4"><input type="text" id="city" class="form-control" placeholder="City" required></div>
+        <div class="col-md-4"><input type="text" id="state" class="form-control" placeholder="State / Province" required></div>
+        <div class="col-md-2"><input type="text" id="country" class="form-control" placeholder="Country" required></div>
+        <div class="col-md-2"><input type="text" id="pin" class="form-control" placeholder="Pin Code" required></div>
       </div>
 
-      <!-- Contact Info -->
       <h5 class="mt-4">Contact Information</h5>
       <div class="row g-3">
-        <div class="col-md-6"><input required type="email" id="email" class="form-control" placeholder="E-mail"></div>
-        <div class="col-md-6"><input type="text" id="phone" class="form-control" placeholder="Phone (Optional)"></div>
+        <div class="col-md-6"><input type="email" id="email" class="form-control" placeholder="E-mail" required></div>
+        <div class="col-md-6"><input type="text" id="phone" class="form-control" placeholder="Phone (Optional)"required></div>
       </div>
 
-      <!-- Courses -->
-      <h5 class="mt-4">Courses <span class="text-danger">*</span></h5>
-      <button type="button" onclick="addNewCourseRow()" class="btn btn-outline-danger btn-sm mb-3">+ Add new record</button>
+      <h5 class="mt-4">Courses</h5>
+      <button type="button" onclick="addNewCourseRow()" class="btn btn-outline-light btn-sm mb-3">+ Add new record</button>
       <div class="table-responsive">
-        <table class="table table-bordered table-sm align-middle">
+        <table class="table table-bordered table-sm align-middle bg-white">
           <thead class="table-light">
             <tr>
               <th>Course</th>
@@ -103,18 +85,18 @@
         </table>
       </div>
 
-      <!-- Comments -->
       <div class="mb-3 mt-3">
         <label for="comments" class="form-label">Comments</label>
         <textarea class="form-control" id="comments" rows="3"></textarea>
       </div>
 
-      <!-- Submit -->
-      <button class="btn btn-primary">Submit Application</button>
+      <button class="btn btn-dark">Submit Application & Save PDF</button>
     </form>
   </div>
 
   <script>
+    const { jsPDF } = window.jspdf;
+
     function addNewCourseRow() {
       const tableBody = document.getElementById("courseTableBody");
       const newRow = document.createElement("tr");
@@ -155,69 +137,53 @@
     }
 
     function validateForm() {
-      let firstName = document.getElementById("firstName").value.trim();
-      let lastName = document.getElementById("lastName").value.trim();
-      let dob = document.getElementById("dob").value;
-      let city = document.getElementById("city").value.trim();
-      let state = document.getElementById("state").value.trim();
-      let country = document.getElementById("country").value.trim();
-      let pin = document.getElementById("pin").value.trim();
-      let studentId = document.getElementById("studentId").value.trim();
-      let email = document.getElementById("email").value.trim();
-      let phone = document.getElementById("phone").value.trim();
+      const firstName = document.getElementById("firstName").value.trim();
+      const lastName = document.getElementById("lastName").value.trim();
+      const dob = document.getElementById("dob").value;
+      const studentId = document.getElementById("studentId").value.trim();
+      const street = document.getElementById("street").value.trim();
+      const city = document.getElementById("city").value.trim();
+      const state = document.getElementById("state").value.trim();
+      const country = document.getElementById("country").value.trim();
+      const pin = document.getElementById("pin").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const comments = document.getElementById("comments").value.trim();
 
-      let namePattern = /^[A-Za-z\s]+$/;
-      let cityPattern = /^[A-Za-z\s]+$/;
-      let statePattern = /^[A-Za-z\s]+$/;
-      let countryPattern = /^[A-Za-z\s]+$/;
-      let pinPattern = /^[0-9]{5}$/;
-      let studentIdPattern = /^[A-Za-z0-9]+$/;
-      let emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
-      let phonePattern = /^[0-9]{10}$/;
+      const doc = new jsPDF();
+      let y = 10;
 
-      if (firstName === "" || !namePattern.test(firstName)) {
-        alert("Please enter a valid First Name (letters only)");
-        return false;
-      }
-      if (lastName === "" || !namePattern.test(lastName)) {
-        alert("Please enter a valid Last Name (letters only)");
-        return false;
-      }
-      if (city === "" || !cityPattern.test(city)) {
-        alert("Please enter a valid City (letters only)");
-        return false;
-      }
-      if (state === "" || !statePattern.test(state)) {
-        alert("Please enter a valid State (letters only)");
-        return false;
-      }
-      if (country === "" || !countryPattern.test(country)) {
-        alert("Please enter a valid Country (letters only)");
-        return false;
-      }
-      if (pin === "" || !pinPattern.test(pin)) {
-        alert("Please enter a valid Pin Code (5 digits only)");
-        return false;
-      }
-      if (dob === "") {
-        alert("Please select your Date of Birth");
-        return false;
-      }
-      if (studentId === "" || !studentIdPattern.test(studentId)) {
-        alert("Please enter a valid Student ID (letters and numbers only)");
-        return false;
-      }
-      if (email === "" || !emailPattern.test(email)) {
-        alert("Please enter a valid Email address");
-        return false;
-      }
-      if (phone !== "" && !phonePattern.test(phone)) {
-        alert("Please enter a valid 10-digit Phone Number");
-        return false;
-      }
+      doc.setFontSize(14);
+      doc.text("Student Registration Form", 70, y); y += 10;
 
-      alert("Form Submitted Successfully!");
-      return true;
+      doc.setFontSize(12);
+      doc.text(`First Name: ${firstName}`, 10, y); y += 7;
+      doc.text(`Last Name: ${lastName}`, 10, y); y += 7;
+      doc.text(`DOB: ${dob}`, 10, y); y += 7;
+      doc.text(`Student ID: ${studentId}`, 10, y); y += 7;
+      doc.text(`Address: ${street}, ${city}, ${state}, ${country} - ${pin}`, 10, y); y += 7;
+      doc.text(`Email: ${email}`, 10, y); y += 7;
+      doc.text(`Phone: ${phone}`, 10, y); y += 10;
+
+      doc.text("Courses Enrolled:", 10, y); y += 6;
+
+      const rows = document.querySelectorAll("#courseTableBody tr");
+      rows.forEach(row => {
+        const course = row.cells[0].querySelector("select").value;
+        const level = row.cells[1].querySelector("select").value;
+        const language = row.cells[2].querySelector("select").value;
+        const startDate = row.cells[3].querySelector("input").value;
+        doc.text(`• ${course} | ${level} | ${language} | ${startDate}`, 12, y);
+        y += 6;
+      });
+
+      doc.text("Comments:", 10, y); y += 6;
+      doc.text(comments, 12, y); y += 6;
+
+      doc.save("StudentForm.pdf");
+
+      alert("🎉 Form submitted and PDF saved successfully!");
+      return false; // Prevent actual form submission
     }
   </script>
 
