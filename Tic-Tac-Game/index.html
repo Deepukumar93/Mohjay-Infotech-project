@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced Tic Tac Toe</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: #000;
+      color: #0ff;
+      font-family: 'Courier New', monospace;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 360px;
+      margin: 20px auto;
+    }
+
+    .cell {
+      background: #111;
+      border: 2px solid #0ff;
+      color: #0ff;
+      font-size: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    .cell:hover {
+      background: #022;
+    }
+
+    .neon {
+      text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff;
+    }
+
+    .status, .score {
+      text-align: center;
+      font-size: 1.3rem;
+      margin-top: 10px;
+    }
+
+    .btns {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .dark-mode {
+      background: #f8f9fa;
+      color: #111;
+    }
+    .dark-mode .cell {
+      background: #fff;
+      color: #000;
+      border-color: #333;
+    }
+
+    .difficulty-select {
+      text-align: center;
+      margin: 10px auto;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="text-center neon">Tic Tac Toe vs AI 🤖</h1>
+
+  <div class="score">
+    You: <span id="playerScore">0</span> | CPU: <span id="cpuScore">0</span>
+  </div>
+
+  <div class="difficulty-select">
+    Difficulty: 
+    <select id="difficulty" class="form-select d-inline w-auto">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="status neon" id="status">Your turn</div>
+
+  <div class="btns">
+    <button class="btn btn-outline-info" onclick="resetGame()">🔁 Reset</button>
+    <button class="btn btn-outline-warning" onclick="toggleMode()">🌓 Mode</button>
+  </div>
+
+  <audio id="clickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+  <audio id="winSound" src="https://www.fesliyanstudios.com/play-mp3/6677" preload="auto"></audio>
+
+  <script>
+    const board = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const playerScoreSpan = document.getElementById("playerScore");
+    const cpuScoreSpan = document.getElementById("cpuScore");
+    const clickSound = document.getElementById("clickSound");
+    const winSound = document.getElementById("winSound");
+    const difficultySelect = document.getElementById("difficulty");
+
+    let boardState = Array(9).fill("");
+    let isPlayerTurn = true;
+    let gameActive = true;
+    let playerScore = 0;
+    let cpuScore = 0;
+
+    const winPatterns = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
+
+    function drawBoard() {
+      board.innerHTML = "";
+      boardState.forEach((val, i) => {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.innerText = val;
+        cell.dataset.index = i;
+        cell.addEventListener("click", handleClick);
+        board.appendChild(cell);
+      });
+    }
+
+    function handleClick(e) {
+      const index = e.target.dataset.index;
+      if (!gameActive || boardState[index] !== "" || !isPlayerTurn) return;
+      boardState[index] = "X";
+      clickSound.play();
+      update();
+      isPlayerTurn = false;
+      setTimeout(cpuMove, 500);
+    }
+
+    function cpuMove() {
+      if (!gameActive) return;
+      const difficulty = difficultySelect.value;
+      let move;
+      if (difficulty === "easy") {
+        let empty = boardState.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+        move = empty[Math.floor(Math.random() * empty.length)];
+      } else if (difficulty === "medium") {
+        move = findBestMoveMedium();
+      } else {
+        move = minimax(boardState, "O").index;
+      }
+      if (move !== undefined) {
+        boardState[move] = "O";
+        clickSound.play();
+        update();
+        isPlayerTurn = true;
+      }
+    }
+
+    function findBestMoveMedium() {
+      for (let pattern of winPatterns) {
+        const [a,b,c] = pattern;
+        const line = [boardState[a], boardState[b], boardState[c]];
+        if (line.filter(v => v === "O").length === 2 && line.includes("")) return [a,b,c][line.indexOf("")];
+        if (line.filter(v => v === "X").length === 2 && line.includes("")) return [a,b,c][line.indexOf("")];
+      }
+      return boardState.findIndex(v => v === "");
+    }
+
+    function minimax(newBoard, player) {
+      const availSpots = newBoard.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+      const winner = checkWinMinimax(newBoard);
+      if (winner === "X") return { score: -10 };
+      if (winner === "O") return { score: 10 };
+      if (availSpots.length === 0) return { score: 0 };
+
+      const moves = [];
+      for (let i = 0; i < availSpots.length; i++) {
+        const move = {};
+        move.index = availSpots[i];
+        newBoard[availSpots[i]] = player;
+        const result = minimax(newBoard, player === "O" ? "X" : "O");
+        move.score = result.score;
+        newBoard[availSpots[i]] = "";
+        moves.push(move);
+      }
+
+      let bestMove;
+      if (player === "O") {
+        let bestScore = -Infinity;
+        for (let i = 0; i < moves.length; i++) {
+          if (moves[i].score > bestScore) {
+            bestScore = moves[i].score;
+            bestMove = i;
+          }
+        }
+      } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < moves.length; i++) {
+          if (moves[i].score < bestScore) {
+            bestScore = moves[i].score;
+            bestMove = i;
+          }
+        }
+      }
+      return moves[bestMove];
+    }
+
+    function checkWinMinimax(b) {
+      for (let pattern of winPatterns) {
+        const [a,b1,c] = pattern;
+        if (b[a] && b[a] === b[b1] && b[a] === b[c]) return b[a];
+      }
+      return null;
+    }
+
+    function update() {
+      drawBoard();
+      let winner = checkWin();
+      if (winner) {
+        winSound.play();
+        statusText.innerText = `${winner} wins!`;
+        gameActive = false;
+        if (winner === "X") playerScore++;
+        else cpuScore++;
+        playerScoreSpan.innerText = playerScore;
+        cpuScoreSpan.innerText = cpuScore;
+      } else if (boardState.every(cell => cell !== "")) {
+        statusText.innerText = "Draw!";
+        gameActive = false;
+      } else {
+        statusText.innerText = isPlayerTurn ? "Your turn" : "CPU's turn";
+      }
+    }
+
+    function checkWin() {
+      for (let pattern of winPatterns) {
+        const [a,b,c] = pattern;
+        if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+          return boardState[a];
+        }
+      }
+      return null;
+    }
+
+    function resetGame() {
+      boardState = Array(9).fill("");
+      gameActive = true;
+      isPlayerTurn = true;
+      statusText.innerText = "Your turn";
+      drawBoard();
+    }
+
+    function toggleMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    drawBoard();
+  </script>
+</body>
+</html>
