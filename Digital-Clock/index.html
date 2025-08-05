@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Repeating Alarm Clock</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-image: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 100vh;
+      margin: 0;
+      color: #fff;
+    }
+
+    .clock-box {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .clock {
+      font-size: 3rem;
+      font-weight: bold;
+    }
+
+    .date {
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    select {
+      padding: 5px;
+      margin: 3px;
+    }
+
+    .alarm-setter {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body class="d-flex justify-content-center align-items-center flex-column">
+
+  <!-- Toggle Button -->
+  <button class="btn btn-light toggle-btn" onclick="toggleMode()">Toggle Mode</button>
+
+  <!-- Clock Box -->
+  <div class="clock-box text-center">
+    <div class="clock" id="clock">00:00:00 AM</div>
+    <div class="date" id="date">Loading date...</div>
+
+    <!-- Set Alarm Trigger -->
+    <button class="btn btn-success btn-sm" onclick="showAlarmOptions()">Set Alarm</button>
+    <button class="btn btn-danger btn-sm" onclick="clearAlarm()">Clear Alarm</button>
+
+    <!-- Alarm Dropdowns -->
+    <div class="alarm-setter" id="alarmOptions">
+      <select id="hour"></select>
+      <select id="minute"></select>
+      <select id="ampm">
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+      </select>
+      <br/>
+      <button class="btn btn-primary btn-sm mt-2" onclick="confirmAlarm()">Confirm Alarm</button>
+    </div>
+
+    <div id="alarmStatus" class="text-info mt-3"></div>
+    <p class="lead">⏰ Digital Clock with Repeating Alarm</p>
+  </div>
+
+  <!-- Sounds -->
+  <audio id="tickSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+  <audio id="alarmSound" src="https://www.fesliyanstudios.com/play-mp3/4383" preload="auto"></audio>
+
+  <script>
+    const tickSound = document.getElementById("tickSound");
+    const alarmSound = document.getElementById("alarmSound");
+    let alarmTime = null;
+    let alarmTriggered = false;
+    let alarmRepeatInterval = null;
+
+    function updateClock() {
+      const now = new Date();
+      let h = now.getHours();
+      const m = now.getMinutes().toString().padStart(2, '0');
+      const s = now.getSeconds().toString().padStart(2, '0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      let displayHour = h % 12 || 12;
+      const hourStr = displayHour.toString().padStart(2, '0');
+
+      document.getElementById('clock').textContent = `${hourStr}:${m}:${s} ${ampm}`;
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('date').textContent = now.toLocaleDateString('en-IN', options);
+
+      tickSound.currentTime = 0;
+      tickSound.play();
+
+      const currentTime = `${hourStr}:${m} ${ampm}`;
+      if (alarmTime === currentTime && !alarmTriggered) {
+        playAlarm();
+      }
+    }
+
+    function playAlarm() {
+      alarmTriggered = true;
+      alarmSound.play();
+
+      // 🔁 Repeat alarm every 10 seconds
+      alarmRepeatInterval = setInterval(() => {
+        alarmSound.currentTime = 0;
+        alarmSound.play();
+      }, 10000);
+    }
+
+    function clearAlarm() {
+      alarmTime = null;
+      alarmTriggered = false;
+      clearInterval(alarmRepeatInterval);
+      alarmSound.pause();
+      alarmSound.currentTime = 0;
+      document.getElementById("alarmStatus").innerText = `❌ Alarm cleared`;
+    }
+
+    function toggleMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function showAlarmOptions() {
+      document.getElementById("alarmOptions").style.display = "block";
+    }
+
+    function confirmAlarm() {
+      const h = document.getElementById("hour").value;
+      const m = document.getElementById("minute").value;
+      const ap = document.getElementById("ampm").value;
+      alarmTime = `${h}:${m} ${ap}`;
+      document.getElementById("alarmStatus").innerText = `✅ Alarm set for ${alarmTime}`;
+      document.getElementById("alarmOptions").style.display = "none";
+      alarmTriggered = false;
+
+      // 🧨 Instant check
+      const now = new Date();
+      let nowHour = now.getHours() % 12 || 12;
+      nowHour = nowHour.toString().padStart(2, '0');
+      const nowMin = now.getMinutes().toString().padStart(2, '0');
+      const nowAMPM = now.getHours() >= 12 ? 'PM' : 'AM';
+      const nowStr = `${nowHour}:${nowMin} ${nowAMPM}`;
+
+      if (alarmTime === nowStr) {
+        playAlarm();
+      }
+    }
+
+    // Populate dropdowns
+    const hourSelect = document.getElementById('hour');
+    const minuteSelect = document.getElementById('minute');
+
+    for (let i = 1; i <= 12; i++) {
+      const val = i.toString().padStart(2, '0');
+      hourSelect.innerHTML += `<option value="${val}">${val}</option>`;
+    }
+
+    for (let i = 0; i < 60; i++) {
+      const val = i.toString().padStart(2, '0');
+      minuteSelect.innerHTML += `<option value="${val}">${val}</option>`;
+    }
+
+    // Start ticking
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+
+</body>
+</html>
